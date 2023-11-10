@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+    limo2:
+        build:
+            context: .
+            dockerfile: docker/Dockerfile
+            args:
+                WWWGROUP: 1000
+                WWWUSER: 1000
+        volumes:
+            - .:/var/www/html
+        ports:
+            - "9060:80"
+        tty: true
+        depends_on:
+            - limo2db
+    limo2db:
+        image: mariadb:10.3.37
+        volumes:
+            - ${PWD}/db-data:/var/lib/mysql
+        environment:
+            MYSQL_DATABASE: limoorders
+            MYSQL_ROOT_PASSWORD: 123123
+            MYSQL_USER: root
+            MYSQL_PASSWORD: 123123
+        restart: on-failure
+
