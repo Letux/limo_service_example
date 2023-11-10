@@ -20,7 +20,9 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            SmsSendingSettingSeeder::class,
+            SettingsSeeder::class,
+            CarsSeeder::class,
+            AirportsSeeder::class,
         ]);
     }
 }

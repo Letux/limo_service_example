@@ -1,7 +1,7 @@
 version: "3"
 
 services:
-    limo2:
+    limo3:
         build:
             context: .
             dockerfile: docker/Dockerfile
@@ -11,16 +11,16 @@ services:
         volumes:
             - .:/var/www/html
         ports:
-            - "9060:80"
+            - "9070:80"
         tty: true
         depends_on:
-            - limo2db
-    limo2db:
+            - limo3db
+    limo3db:
         image: mariadb:10.3.37
         volumes:
             - ${PWD}/db-data:/var/lib/mysql
         environment:
-            MYSQL_DATABASE: limoorders
+            MYSQL_DATABASE: limo_service
             MYSQL_ROOT_PASSWORD: 123123
             MYSQL_USER: root
             MYSQL_PASSWORD: 123123

@@ -43,6 +43,6 @@ COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY ./docker/php.ini /etc/php/8.2/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
-EXPOSE 9060
+EXPOSE 9070
 
 ENTRYPOINT ["start-container"]
