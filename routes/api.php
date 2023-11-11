@@ -19,4 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/timeFromOHare', [ZipCodeController::class, 'timeFromOHare']);
+Route::get('/time-from-ohare', [ZipCodeController::class, 'timeFromOHare']);
+Route::get('/zip-code-exists', [ZipCodeController::class, 'exists']);

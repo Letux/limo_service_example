@@ -8,12 +8,12 @@ use App\Repositories\AirportsRepository;
 use App\Rules\MinHourRule;
 use App\Rules\NotPastDateRule;
 use App\Rules\NotPastHourRule;
-use App\Services\OrderService;
+use App\Rules\ZipCodeExistsRule;
+use App\Services\AddressService;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 final  class OrderStep1Request extends FormRequest
 {
@@ -43,11 +43,11 @@ final  class OrderStep1Request extends FormRequest
                         $fail("The minimum number of hours for the hourly charter is not met");
                     }
                 }
-                ],
+            ],
             'from_airport' => ['nullable', 'integer', Rule::in(AirportsRepository::getIdArray())],
-            'pickup_address' => ['nullable', [self::class, 'zipRequired']],
+            'pickup_address' => ['nullable', [self::class, 'zipRequired'], ZipCodeExistsRule::class],
             'to_airport' => ['nullable', 'integer', Rule::in(AirportsRepository::getIdArray())],
-            'dropoff_address' => ['nullable', [self::class, 'zipRequired']],
+            'dropoff_address' => ['nullable', [self::class, 'zipRequired'], ZipCodeExistsRule::class],
         ];
     }
 
@@ -69,7 +69,7 @@ final  class OrderStep1Request extends FormRequest
 
     public function zipRequired(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!preg_match('/\b\d{5}\b/', $value)) {
+        if (!AddressService::containsZip($value)) {
             $fail('We really need this ZIP code to proceed');
         }
     }

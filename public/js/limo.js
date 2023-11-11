@@ -149,7 +149,7 @@ var Step1 = {
 			if (minDate == 1) {
 				minimalDate = new Date(minimalDate.getFullYear(), minimalDate.getMonth(), minimalDate.getDate() + 1);
 			}
-			
+
 			return minimalDate.getTime() <= valueDate.getTime();
 		}, LNG['notPast']);
 
@@ -164,7 +164,7 @@ var Step1 = {
 
 		jQuery.validator.addMethod('zipExists', function(value, element, params) {
 			var zip = /\b\d{5}\b/.exec(value);
-		
+
 			if (zip == null) {
 				return true;
 			}
@@ -173,11 +173,10 @@ var Step1 = {
 
 			if (zip in zipExistsCache) {
 				return zipExistsCache[zip];
-			}
-			else {
+			} else {
 				$.ajaxSetup({async: false});
 
-				$.get('/order/zip_codes/exists/', {'zip' : zip}, function(data){
+				$.get('/api/zip-code-exists', {'zip' : zip}, function(data){
 					$(element).attr('zipexists', data);
 
 					zipExistsCache[zip] = parseInt($(element).attr('zipexists'));
@@ -378,13 +377,13 @@ var Step1 = {
 
 						var pickUpHours = $('#OrderHour').val();
 						var pickUpMinutes = $('#OrderMinutes').val();
-						
+
 // 						pickUpMinutes = parseInt(pickUpMinutes) + minutes;
 // 						if (pickUpMinutes > 59) {
 // 							pickUpMinutes -= 60;
 // 							pickUpHours += 1;
 // 						}
-						
+
 // 						pickUpHours = parseInt(pickUpHours) + hours;
 // 						if (pickUpHours > 23) {
 // 							pickUpHours -= 24;
@@ -392,9 +391,9 @@ var Step1 = {
 
 						var today = new Date();
 						var time = new Date(today.getFullYear(), today.getMonth(), today.getDay(), parseInt(pickUpHours) + hours, parseInt(pickUpMinutes) + minutes);
-						
+
 						text += ' ('+ time.toLocaleTimeString().substr(0, 5) +')';
-						
+
 						this.text = text;
 					}
 				});
@@ -426,7 +425,7 @@ var Login = {
 				}
 			}
 		});
-		
+
 		$('#UserRegistrationForm').validate({
 			rules: {
 				'data[User][register_email]' : {
@@ -638,7 +637,7 @@ var Step3 = {
 var Step4 = {
 	init: function() {
 		$('#divProvoCode').hide();
-	
+
 		$('#aPromoCode').click(function() {
 			$('#divProvoCode').show('fast');
 			return false;
@@ -649,7 +648,7 @@ var Step4 = {
 		$('#aChangeTip').click(function() {
 			$('#divTip').show();
 			$('#divTip2').hide();
-		
+
 			return false;
 		});
 

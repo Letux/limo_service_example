@@ -27,4 +27,9 @@ class ZipCode extends Model
             return 0;
         }
     }
+
+    public static function isExisted(int $zip): bool
+    {
+        return self::find($zip)->exists();
+    }
 }

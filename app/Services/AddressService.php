@@ -13,4 +13,9 @@ class AddressService
         preg_match('/\b\d{5}\b/', $address, $dropOffZip);
         return $dropOffZip[0] ?? null;
     }
+
+    public static function containsZip(string $address): false|int
+    {
+        return preg_match('/\b\d{5}\b/', $address);
+    }
 }
