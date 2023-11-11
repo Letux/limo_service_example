@@ -30,6 +30,6 @@ class ZipCode extends Model
 
     public static function isExisted(int $zip): bool
     {
-        return self::find($zip)->exists();
+        return self::where('id', $zip)->exists();
     }
 }

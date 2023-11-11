@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             CarsSeeder::class,
             AirportsSeeder::class,
+            ZipCodesSeeder::class,
         ]);
     }
 }
