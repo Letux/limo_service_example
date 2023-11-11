@@ -5,6 +5,7 @@ namespace App\Models;
 use App\DTOs\OrderStep1ValidatedData;
 use App\Enums\OrderStatus;
 use App\Enums\OrderTo;
+use App\Services\AddressService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -285,7 +286,7 @@ class Order extends Model
             $this->pickup_zip = Airport::find($this->airport_id)->zip;
         } else {
             throw_if($this->pickup_address === null, new \Exception('Order pickup_address is null'));
-            $this->pickup_zip = $this->getZip($this->pickup_address);
+            $this->pickup_zip = AddressService::getZip($this->pickup_address);
         }
     }
 
@@ -312,20 +313,11 @@ class Order extends Model
 
         if (in_array($this->to, [OrderTo::FROM_AIRPORT, OrderTo::POINT_TO_POINT])) {
             throw_if($this->dropoff_address === null, new \Exception('Order dropoff_address is null'));
-            $this->dropoff_zip = $this->getZip($this->dropoff_address);
+            $this->dropoff_zip = AddressService::getZip($this->dropoff_address);
         } elseif ($this->to === OrderTo::TO_AIRPORT) {
             throw_if($this->airport_id === null, new \Exception('Order airport_id is null'));
             $this->dropoff_zip = Airport::find($this->airport_id)->zip;
         }
     }
 
-    /**
-     * @param string $address
-     * @return string|null
-     */
-    public function getZip(string $address): ?string
-    {
-        preg_match('/\b\d{5}\b/', $address, $dropOffZip);
-        return $dropOffZip[0] ?? null;
-    }
 }

@@ -4,8 +4,8 @@ namespace App\Rules;
 
 use App\Enums\AirportEnum;
 use App\Enums\OrderTo;
-use App\Models\Order;
 use App\Models\ZipCode;
+use App\Services\AddressService;
 use App\Services\OrderService;
 use Closure;
 use Illuminate\Contracts\Validation\DataAwareRule;
@@ -50,7 +50,7 @@ final readonly class MinHourRule extends OrderStep1Rule implements ValidationRul
                 throw new \Exception('Unknown airport');
             }
         } else {
-            $zip = Order::getZip($this->data->pickup_address);
+            $zip = AddressService::getZip($this->data->pickup_address);
             $hours2ZIP = ZipCode::getHoursFormORD($zip);
         }
 
