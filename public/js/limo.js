@@ -110,8 +110,8 @@ var Step1 = {
 
 				if (/\b\d{5}\b/.test(pickupAddress)) {
 					$.ajaxSetup({async: false});
-					$.get('/order/zip_codes/timeFromOHare/', {'address' : pickupAddress}, function(data){
-						$(element).attr('time2ZIP', data);
+					$.post('/api/time_from_ohare', {'address' : pickupAddress}, function(data){
+						$(element).attr('time2ZIP', data.result);
 					});
 
 					time2ZIP = $(element).attr('time2ZIP');
@@ -176,10 +176,10 @@ var Step1 = {
 			} else {
 				$.ajaxSetup({async: false});
 
-				$.get('/api/zip-code-exists', {'zip' : zip}, function(data){
-					$(element).attr('zipexists', data);
-
-					zipExistsCache[zip] = parseInt($(element).attr('zipexists'));
+				$.get('/api/zip-code-exists/' + zip, function(data){
+                    const result = data.result;
+                    $(element).attr('zipexists', result);
+					zipExistsCache[zip] = parseInt(result);
 				});
 
 				$.ajaxSetup({async: true});
@@ -261,7 +261,7 @@ var Step1 = {
 			source: function( request, response ) {
 				var term = request.term;
 
-				$.getJSON("/order/zip_codes/auto", request, function( data, status, xhr ) {
+				$.getJSON("/api/address/autocomplete", request, function( data, status, xhr ) {
 					if (data.length == 1) {
 						if (data[0].value == term) {
 							return false;
