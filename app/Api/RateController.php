@@ -3,15 +3,13 @@
 namespace App\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Rate;
+use App\Repositories\RatesRepository;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final  class RateController extends Controller
 {
     /**
-     * @param Request $request
-     * @return array
      * @throws \Throwable
      */
     public function autocomplete(Request $request): array
@@ -20,6 +18,6 @@ final  class RateController extends Controller
 
         throw_if(empty($term), new NotFoundHttpException());
 
-        return Rate::getAutocompleteCities($term, 8);
+        return RatesRepository::getAutocompleteCities($term, 8);
     }
 }

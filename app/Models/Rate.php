@@ -12,8 +12,6 @@ class Rate extends Model
     const CREATED_AT = 'created';
     const UPDATED_AT = 'modified';
 
-    public $timestamps = false;
-
     protected $fillable = [
         'zip',
         'town',
@@ -28,8 +26,6 @@ class Rate extends Model
         'url_rates',
         'manual_rate',
         'old_id',
-        'created',
-        'modified',
     ];
 
     protected $casts = [
@@ -39,14 +35,4 @@ class Rate extends Model
         'modified' => 'datetime',
     ];
 
-    public static function getIdByAddress(string $address) : int
-    {
-        [$town, $stateZip] = explode(',', $address);
-        [, $zip] = explode(' ', trim($stateZip));
-
-        return self
-            ::where('town', trim($town))
-            ->where('zip', trim($zip))
-            ->value('id');
-    }
 }

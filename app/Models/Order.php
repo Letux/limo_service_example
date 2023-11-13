@@ -5,6 +5,7 @@ namespace App\Models;
 use App\DTOs\OrderStep1ValidatedData;
 use App\Enums\OrderStatus;
 use App\Enums\OrderTo;
+use App\Repositories\RatesRepository;
 use App\Services\AddressService;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -256,9 +257,9 @@ class Order extends Model
         throw_if($this->to === null, new \Exception('Order to is null'));
 
         if ($this->to === OrderTo::TO_AIRPORT) {
-            $this->rate_id = Rate::getIdByAddress($this->pickup_address);
+            $this->rate_id = RatesRepository::getIdByAddress($this->pickup_address);
         } elseif ($this->to == OrderTo::FROM_AIRPORT) {
-            $this->rate_id = Rate::getIdByAddress($this->dropoff_address);
+            $this->rate_id = RatesRepository::getIdByAddress($this->dropoff_address);
         }
     }
 
