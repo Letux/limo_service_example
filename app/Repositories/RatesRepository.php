@@ -4,111 +4,19 @@ namespace App\Repositories;
 
 use App\Data\Address;
 use App\Models\Rate;
-use App\Services\AddressService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 
 final class RatesRepository
 {
-
-    public static function getAutocompleteCities(string $address, int $limit): array
+    public static function getIdByAddress(string $addressString): ?int
     {
-        // Starts from ZIP
-        if (preg_match('/^\d+/', $address)) {
-            return self::getAutocompleteCitiesByZip($address, $limit);
-        }
-
-        return self::getAutocompleteCitiesByString($address, $limit);
-    }
-
-    public static function getAutocompleteResult(Collection $zips): array
-    {
-        $result = [];
-        foreach ($zips as $zip) {
-            $address = $zip->town . ', ' . $zip->state . ' ' . $zip->zip;
-            $result[] = [
-                'label' => $address,
-                'value' => $address
-            ];
-        }
-
-        return $result;
-    }
-
-    public static function getAutocompleteCitiesByZip(int $zip, int $limit): array
-    {
-        $zips = Rate
-            ::select(['zip', 'town', 'state'])
-            ->where('zip', 'LIKE', $zip . '%')
-            ->limit($limit)
-            ->get();
-
-        // If empty try soundex
-        if ($zips->isEmpty()) {
-            $zips = Rate
-                ::select(['zip', 'town', 'state'])
-                ->where('zip', 'SOUNDS LIKE', $zip . '%')
-                ->limit($limit)
-                ->get();
-        }
-
-        return self::getAutocompleteResult($zips);
-    }
-
-    public static function getIdByAddress(string $addressString): int
-    {
-        $address = AddressService::getObjectFromString($addressString);
+        $address = Address::createFromString($addressString);
 
         return Rate
             ::where('town', $address->city)
             ->where('zip', $address->zip)
             ->value('id');
-    }
-
-    public static function getAutocompleteCitiesByString(string $addressString, int $limit): array
-    {
-        $address = AddressService::getObjectFromString($addressString);
-
-        $cities = self::getAutocompleteCitiesCollection($address, $limit);
-
-        // If got less then $limit try to use SOUNDEX
-        if ($cities->count() < $limit) {
-            $soundsCities = self::getAutocompleteCitiesSoundexCollection($address, $limit);
-
-            $cities->merge($soundsCities);
-            $cities = $cities->unique();
-        }
-
-        return self::getAutocompleteResult($cities);
-    }
-
-    public static function getAutocompleteCitiesSoundexCollection($address, $limit): Collection
-    {
-        $query = Rate
-            ::select(['zip', 'town', 'state'])
-            ->limit($limit);
-
-        // Just city in the address
-        if (empty($address->state)) {
-            $query->where('town', 'SOUNDS LIKE', $address->city . '%');
-        } // Without zip
-        elseif (empty($address->zip)) {
-            if (strlen($address->state) === 1) {
-                $query
-                    ->where('town', 'SOUNDS LIKE', $address->city . '%')
-                    ->where('state', 'LIKE', $address->state . '%');
-            } else {
-                $query
-                    ->where('town', 'SOUNDS LIKE', $address->city . '%')
-                    ->where('state', $address->state);
-            }
-        } else {
-            $query
-                ->where('town', 'SOUNDS LIKE', $address->city . '%')
-                ->where('state', 'LIKE', $address->state . '%')
-                ->where('zip', 'LIKE', $address->zip . '%');
-        }
-
-        return $query->get();
     }
 
     public static function getAutocompleteCitiesCollection(Address $address, int $limit): Collection
@@ -119,25 +27,97 @@ final class RatesRepository
 
         // Just city in the address
         if (empty($address->state)) {
-            $query->where('town', 'LIKE', $address->city . '%');
+            self::addLikeWhere($query, 'town', $address->city);
         } // Without zip
         elseif (empty($address->zip)) {
-            if (strlen($address->state) === 1) {
-                $query
-                    ->where('town', 'LIKE', $address->city . '%')
-                    ->where('state', 'LIKE', $address->state . '%');
-            } else {
-                $query
-                    ->where('town', 'LIKE', $address->city . '%')
-                    ->where('state', $address->state);
-            }
+            self::addWhereConditionsWithoutZip($query, $address);
         } else {
-            $query
-                ->where('town', 'LIKE', $address->city . '%')
-                ->where('state', 'LIKE', $address->state . '%')
-                ->where('zip', 'LIKE', $address->zip . '%');
+            self::addWhereConditionsFullAddress($query, $address);
         }
 
         return $query->get();
+    }
+
+    public static function getAutocompleteCitiesSoundexCollection(Address $address, $limit): Collection
+    {
+        $query = Rate
+            ::select(['zip', 'town', 'state'])
+            ->limit($limit);
+
+        // Just city in the address
+        if (empty($address->state)) {
+            self::addSoundexWhere($query, 'town', $address->city);
+        } // Without zip
+        elseif (empty($address->zip)) {
+            self::addWhereSoundexConditionsWithoutZip($query, $address);
+        } else {
+            self::addSoundexWhereConditionsFullAddress($query, $address);
+        }
+
+        return $query->get();
+    }
+
+    public static function getCitiesByZipLike(int $zip, int $limit): Collection
+    {
+        return Rate
+            ::select(['zip', 'town', 'state'])
+            ->where('zip', 'LIKE', $zip . '%')
+            ->limit($limit)
+            ->get();
+    }
+
+    public static function getCitiesByZipSoundsLike(int $zip, int $limit): Collection
+    {
+        return Rate
+            ::select(['zip', 'town', 'state'])
+            ->where('zip', 'SOUNDS LIKE', $zip . '%')
+            ->limit($limit)
+            ->get();
+    }
+
+    private static function addSoundexWhere(Builder $query, string $field, string $value): void
+    {
+        $query->where($field, 'SOUNDS LIKE', $value . '%');
+    }
+
+    private static function addLikeWhere(Builder $query, string $field, string $value): void
+    {
+        $query->where($field, 'LIKE', $value . '%');
+    }
+
+    public static function addWhereSoundexConditionsWithoutZip(Builder $query, Address $address): void
+    {
+        if (strlen($address->state) === 1) {
+            self::addSoundexWhere($query, 'town', $address->city);
+            self::addLikeWhere($query, 'state', $address->state);
+        } else {
+            self::addSoundexWhere($query, 'town', $address->city);
+            $query->where('state', $address->state);
+        }
+    }
+
+    public static function addSoundexWhereConditionsFullAddress(Builder $query, Address $address): void
+    {
+        self::addSoundexWhere($query, 'town', $address->city);
+        self::addLikeWhere($query, 'state', $address->state);
+        self::addLikeWhere($query, 'zip', $address->zip);
+    }
+
+    public static function addWhereConditionsWithoutZip(Builder $query, Address $address): void
+    {
+        if (strlen($address->state) === 1) {
+            self::addLikeWhere($query, 'town', $address->city);
+            self::addLikeWhere($query, 'state', $address->state);
+        } else {
+            self::addLikeWhere($query, 'town', $address->city);
+            $query->where('state', $address->state);
+        }
+    }
+
+    public static function addWhereConditionsFullAddress(Builder $query, Address $address): void
+    {
+        self::addLikeWhere($query, 'town', $address->city);
+        self::addLikeWhere($query, 'state', $address->state);
+        self::addLikeWhere($query, 'zip', $address->zip);
     }
 }

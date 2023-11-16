@@ -3,7 +3,7 @@
 namespace App\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\RatesRepository;
+use App\Services\RateService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,6 +18,6 @@ final  class RateController extends Controller
 
         throw_if(empty($term), new NotFoundHttpException());
 
-        return RatesRepository::getAutocompleteCities($term, 8);
+        return RateService::getAutocompleteCities($term, 8);
     }
 }

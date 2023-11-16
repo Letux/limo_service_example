@@ -34,5 +34,4 @@ class Rate extends Model
         'created' => 'datetime',
         'modified' => 'datetime',
     ];
-
 }

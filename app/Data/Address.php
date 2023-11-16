@@ -13,13 +13,13 @@ class Address
     {
         $address = self::cleanAddressString($address);
 
-        $result = preg_match('/^([\w\s]+)\s*,\s*(\w{2}) (\d{5})$/', $address, $matches);
+        $result = preg_match('/^([\w\s]+)\s*,\s*(\w{2}) (\d+)$/', $address, $matches);
 
         if ($result === 1) {
             return new Address(trim($matches[1]), $matches[2], $matches[3]);
         }
 
-        $result = preg_match('/^([\w\s]+)\s*,\s*(\w{2})$/', $address, $matches);
+        $result = preg_match('/^([\w\s]+)\s*,\s*(\w+)$/', $address, $matches);
 
         if ($result === 1) {
             return new Address(trim($matches[1]), $matches[2], null);
